@@ -233,3 +233,69 @@ function printpdf() {
     var info = document.getElementById("custinfo");
     info.value = value1;
   }
+
+  // Display user name on page load
+  window.addEventListener('load', function() {
+    const session = JSON.parse(localStorage.getItem('resumeMakerSession'));
+    if (session && session.name) {
+        const userNameElement = document.getElementById('userName');
+        if (userNameElement) {
+            userNameElement.textContent = 'Welcome, ' + session.name;
+        }
+    }
+    
+    // Load saved theme
+    const savedTheme = localStorage.getItem('resumeTheme') || 'purple';
+    applyTheme(savedTheme);
+  });
+
+// COLOR THEME FUNCTIONS
+function changeTheme(theme) {
+    applyTheme(theme);
+    localStorage.setItem('resumeTheme', theme);
+    updateThemeSelector(theme);
+}
+
+function applyTheme(theme) {
+    // Remove all theme classes
+    document.body.classList.remove('theme-purple', 'theme-blue', 'theme-green', 'theme-pink', 'theme-orange', 'theme-teal', 'theme-indigo', 'theme-red');
+    
+    // Add the selected theme
+    document.body.classList.add('theme-' + theme);
+}
+
+function updateThemeSelector(theme) {
+    // Update active button in color selector
+    const colorOptions = document.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+        if (option.dataset.theme === theme) {
+            option.classList.add('active');
+        } else {
+            option.classList.remove('active');
+        }
+    });
+}
+
+// Toggle color selector visibility
+document.addEventListener('DOMContentLoaded', function() {
+    const colorToggle = document.getElementById('colorToggle');
+    const colorSelector = document.getElementById('colorSelector');
+    
+    if (colorToggle && colorSelector) {
+        colorToggle.addEventListener('click', function(e) {
+            e.stopPropagation();
+            colorSelector.classList.toggle('hidden');
+            
+            // Update active theme button when opening
+            const savedTheme = localStorage.getItem('resumeTheme') || 'purple';
+            updateThemeSelector(savedTheme);
+        });
+        
+        // Close color selector when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!colorSelector.contains(e.target) && !colorToggle.contains(e.target)) {
+                colorSelector.classList.add('hidden');
+            }
+        });
+    }
+});
