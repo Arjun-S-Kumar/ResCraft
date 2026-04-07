@@ -298,19 +298,29 @@ button:active:not(.logout-btn, .navbtn) {
     justify-content: center;
 }
 
-.navbtn:nth-child(2) {
-    top: 50%;
+.download-btn {
+    top: 45%;
     left: 4.4%;
 }
 
-.navbtn:nth-child(3) {
-    top: 60%;
-    left: 4.8%;
+.save-btn {
+    top: 55%;
+    left: 4.4%;
 }
 
-.navbtn:nth-child(4) {
+.dashboard-btn {
+    top: 65%;
+    left: 4.4%;
+}
+
+.edit-btn {
     top: 70%;
-    left: 5.2%;
+    left: 4.4%;
+}
+
+.home-btn {
+    top: 80%;
+    left: 4.4%;
 }
 
 .navbtn:hover {
@@ -519,11 +529,77 @@ button:active:not(.logout-btn, .navbtn) {
     margin-top: 5px;
 }
 
-.remember-forgot {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
+    .dashboard {
+        max-width: 800px;
+        margin: 20px auto;
+        padding: 20px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+        color: #333;
+    }
+
+    .dashboard-header h2 {
+        margin-bottom: 8px;
+        font-size: 24px;
+        color: #2d2d2d;
+    }
+
+    .dashboard-header p {
+        margin-bottom: 14px;
+        color: #666;
+        font-size: 14px;
+    }
+
+    .saved-resumes-list {
+        display: grid;
+        gap: 12px;
+    }
+
+    .saved-resume-card {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 16px;
+        border-radius: 10px;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+        background: #fff;
+    }
+
+    .saved-resume-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        max-width: 65%;
+    }
+
+    .saved-resume-meta strong {
+        color: #222;
+        font-size: 16px;
+    }
+
+    .saved-resume-meta span {
+        color: #777;
+        font-size: 13px;
+    }
+
+    .saved-resume-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .saved-resume-item .btn {
+        padding: 6px 14px !important;
+        font-size: 13px !important;
+    }
+
+    .empty-message {
+        color: #555;
+        font-size: 14px;
+        margin: 0;
+    }
     font-size: 14px;
 }
 
@@ -936,6 +1012,39 @@ button:active:not(.logout-btn, .navbtn) {
     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2) !important;
 }
 
+.custom-color-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.custom-color-option input[type="color"] {
+    width: 100%;
+    height: 40px;
+    border: none;
+    padding: 0;
+    background: transparent;
+    cursor: pointer;
+    border-radius: 8px;
+}
+
+.custom-theme-button {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 8px 12px !important;
+    font-weight: 600 !important;
+    cursor: pointer;
+    transition: all 0.3s ease !important;
+}
+
+.custom-theme-button:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%) !important;
+}
+
 .color-option.active {
     border-color: var(--primary-color);
     background: rgba(102, 126, 234, 0.1);
@@ -1101,6 +1210,11 @@ body.theme-red {
     --secondary-color: #f5576c;
 }
 
+/* Custom Theme */
+body.theme-custom {
+    /* custom CSS vars are set dynamically in script */
+}
+
 /* Update colors to use CSS variables */
 body.theme-purple,
 body.theme-blue,
@@ -1109,7 +1223,8 @@ body.theme-pink,
 body.theme-orange,
 body.theme-teal,
 body.theme-indigo,
-body.theme-red {
+body.theme-red,
+body.theme-custom {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 25%, var(--secondary-color) 50%, var(--accent-color) 100%);
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;

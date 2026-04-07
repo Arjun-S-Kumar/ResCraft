@@ -229,9 +229,215 @@ function printpdf() {
   
   function saveresume() {
     var sec = document.getElementById("print");
-    value1 = sec.innerHTML;
+    const value1 = sec.innerHTML;
     var info = document.getElementById("custinfo");
-    info.value = value1;
+    if (info) {
+        info.value = value1;
+    }
+  }
+
+  function getCurrentUserEmail() {
+    const session = JSON.parse(localStorage.getItem('resumeMakerSession'));
+    return session ? session.email : null;
+  }
+
+  function getSavedResumes() {
+    const email = getCurrentUserEmail();
+    if (!email) return [];
+    const allSaved = JSON.parse(localStorage.getItem('resumeMakerSavedResumes')) || {};
+    return allSaved[email] || [];
+  }
+
+  function setSavedResumes(resumes) {
+    const email = getCurrentUserEmail();
+    if (!email) return;
+    const allSaved = JSON.parse(localStorage.getItem('resumeMakerSavedResumes')) || {};
+    allSaved[email] = resumes;
+    localStorage.setItem('resumeMakerSavedResumes', JSON.stringify(allSaved));
+  }
+
+  function saveCurrentResume() {
+    const email = getCurrentUserEmail();
+    if (!email) {
+      alert('Please login to save resumes.');
+      return;
+    }
+
+    const resumeSection = document.getElementById('print');
+    if (!resumeSection) return;
+
+    const titleText = document.querySelector('.head .name')?.textContent.trim() || 'Untitled';
+    const subtitleText = document.querySelector('.head .post')?.textContent.trim() || '';
+    const title = subtitleText ? `${titleText} - ${subtitleText}` : titleText;
+    const html = resumeSection.innerHTML;
+    const resumeId = 'resume-' + Date.now();
+
+    // Try to save to database first
+    fetch('http://localhost:5000/api/resumes/save', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: email,
+            id: resumeId,
+            title: title,
+            html: html
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Resume saved successfully to database!');
+            renderSavedResumes();
+        } else {
+            throw new Error(data.message || 'Failed to save');
+        }
+    })
+    .catch(error => {
+        console.error('Database save error:', error);
+        // Fallback to localStorage
+        const savedResumes = getSavedResumes();
+        const newResume = {
+            id: resumeId,
+            title: title,
+            timestamp: new Date().toISOString(),
+            html: html
+        };
+        savedResumes.push(newResume);
+        setSavedResumes(savedResumes);
+        renderSavedResumes();
+        alert('Resume saved to local storage (database offline).');
+    });
+  }
+
+  function renderSavedResumes() {
+    const list = document.getElementById('savedResumesList');
+    if (!list) return;
+
+    const email = getCurrentUserEmail();
+    if (!email) {
+        list.innerHTML = '<p class="empty-message">Please login to view saved resumes.</p>';
+        return;
+    }
+
+    // Try to fetch from database
+    fetch(`http://localhost:5000/api/resumes/get?email=${encodeURIComponent(email)}`)
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.resumes && data.resumes.length > 0) {
+            renderResumeList(data.resumes, list);
+        } else {
+            // Fallback to localStorage
+            loadAndRenderLocalResumes(list);
+        }
+    })
+    .catch(error => {
+        console.error('Failed to fetch from database:', error);
+        // Fallback to localStorage
+        loadAndRenderLocalResumes(list);
+    });
+  }
+
+  function loadAndRenderLocalResumes(list) {
+    const savedResumes = getSavedResumes();
+    if (savedResumes.length === 0) {
+      list.innerHTML = '<p class="empty-message">No saved resumes yet. Click the save icon to store this resume.</p>';
+      return;
+    }
+    renderResumeList(savedResumes, list);
+  }
+
+  function renderResumeList(resumes, list) {
+    list.innerHTML = '';
+    resumes.slice().reverse().forEach(resume => {
+      const item = document.createElement('div');
+      item.className = 'saved-resume-item';
+      item.innerHTML = `
+        <div class="saved-resume-card">
+          <div class="saved-resume-meta">
+            <strong>${resume.title}</strong>
+            <span>${new Date(resume.timestamp).toLocaleString()}</span>
+          </div>
+          <div class="saved-resume-actions">
+            <button type="button" class="btn btn-sm btn-primary" onclick="editSavedResume('${resume.id}')">Edit</button>
+            <button type="button" class="btn btn-sm btn-danger" onclick="deleteSavedResume('${resume.id}')">Delete</button>
+          </div>
+        </div>
+      `;
+      list.appendChild(item);
+    });
+  }
+
+  function editSavedResume(id) {
+    const savedResumes = getSavedResumes();
+    const resume = savedResumes.find(item => item.id === id);
+    if (!resume) return;
+    const resumeSection = document.getElementById('print');
+    if (resumeSection) {
+      resumeSection.innerHTML = resume.html;
+      alert('Saved resume loaded.');
+      return;
+    }
+
+    localStorage.setItem('resumeMakerLoadResume', id);
+    window.location.href = 'index.html';
+  }
+
+  function loadPendingSavedResume() {
+    const pendingId = localStorage.getItem('resumeMakerLoadResume');
+    if (!pendingId) return;
+
+    const savedResumes = getSavedResumes();
+    const resume = savedResumes.find(item => item.id === pendingId);
+    localStorage.removeItem('resumeMakerLoadResume');
+    if (!resume) return;
+
+    const resumeSection = document.getElementById('print');
+    if (resumeSection) {
+      resumeSection.innerHTML = resume.html;
+      alert('Loaded saved resume from dashboard.');
+    }
+  }
+
+  function deleteSavedResume(id) {
+    const email = getCurrentUserEmail();
+    if (!email) {
+        alert('Please login.');
+        return;
+    }
+
+    if (!confirm('Are you sure you want to delete this resume?')) {
+        return;
+    }
+
+    // Try to delete from database first
+    fetch('http://localhost:5000/api/resumes/delete', {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            id: id,
+            email: email
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            renderSavedResumes();
+        } else {
+            throw new Error(data.message || 'Failed to delete');
+        }
+    })
+    .catch(error => {
+        console.error('Database delete error:', error);
+        // Fallback to localStorage
+        const savedResumes = getSavedResumes();
+        const updated = savedResumes.filter(item => item.id !== id);
+        setSavedResumes(updated);
+        renderSavedResumes();
+    });
   }
 
   // Display user name on page load
@@ -246,22 +452,96 @@ function printpdf() {
     
     // Load saved theme
     const savedTheme = localStorage.getItem('resumeTheme') || 'purple';
-    applyTheme(savedTheme);
+    if (savedTheme === 'custom') {
+        const customColor = localStorage.getItem('resumeCustomColor') || '#667eea';
+        applyTheme('custom', customColor);
+        updateCustomSwatch(customColor);
+        updateThemeSelector('custom');
+    } else {
+        applyTheme(savedTheme);
+        updateThemeSelector(savedTheme);
+    }
+    renderSavedResumes();
+    loadPendingSavedResume();
   });
 
 // COLOR THEME FUNCTIONS
-function changeTheme(theme) {
+function changeTheme(theme, customColor) {
+    if (theme === 'custom') {
+        const color = customColor || document.getElementById('customThemeColor')?.value || '#667eea';
+        applyTheme('custom', color);
+        localStorage.setItem('resumeTheme', 'custom');
+        localStorage.setItem('resumeCustomColor', color);
+        updateThemeSelector('custom');
+        return;
+    }
+
     applyTheme(theme);
     localStorage.setItem('resumeTheme', theme);
+    localStorage.removeItem('resumeCustomColor');
     updateThemeSelector(theme);
 }
 
-function applyTheme(theme) {
+function applyCustomTheme() {
+    const colorInput = document.getElementById('customThemeColor');
+    if (!colorInput) return;
+    const color = colorInput.value;
+    changeTheme('custom', color);
+}
+
+function applyTheme(theme, customColor) {
     // Remove all theme classes
-    document.body.classList.remove('theme-purple', 'theme-blue', 'theme-green', 'theme-pink', 'theme-orange', 'theme-teal', 'theme-indigo', 'theme-red');
-    
-    // Add the selected theme
-    document.body.classList.add('theme-' + theme);
+    document.body.classList.remove('theme-purple', 'theme-blue', 'theme-green', 'theme-pink', 'theme-orange', 'theme-teal', 'theme-indigo', 'theme-red', 'theme-custom');
+
+    if (theme === 'custom') {
+        document.body.classList.add('theme-custom');
+        const color = customColor || document.getElementById('customThemeColor')?.value || '#667eea';
+        const primaryDark = shadeColor(color, -15);
+        const secondaryColor = shadeColor(color, 20);
+        const accentColor = shadeColor(color, -5);
+        const accentDark = shadeColor(color, -35);
+        const dangerColor = shadeColor(color, 25);
+        const dangerDark = shadeColor(color, 10);
+
+        document.body.style.setProperty('--primary-color', color);
+        document.body.style.setProperty('--primary-dark', primaryDark);
+        document.body.style.setProperty('--secondary-color', secondaryColor);
+        document.body.style.setProperty('--accent-color', accentColor);
+        document.body.style.setProperty('--accent-dark', accentDark);
+        document.body.style.setProperty('--danger-color', dangerColor);
+        document.body.style.setProperty('--danger-dark', dangerDark);
+    } else {
+        document.body.classList.add('theme-' + theme);
+        document.body.style.removeProperty('--primary-color');
+        document.body.style.removeProperty('--primary-dark');
+        document.body.style.removeProperty('--secondary-color');
+        document.body.style.removeProperty('--accent-color');
+        document.body.style.removeProperty('--accent-dark');
+        document.body.style.removeProperty('--danger-color');
+        document.body.style.removeProperty('--danger-dark');
+    }
+}
+
+function updateCustomSwatch(color) {
+    const swatch = document.getElementById('customSwatch');
+    if (swatch) {
+        swatch.style.background = color;
+    }
+}
+
+function shadeColor(color, percent) {
+    let R = parseInt(color.substring(1, 3), 16);
+    let G = parseInt(color.substring(3, 5), 16);
+    let B = parseInt(color.substring(5, 7), 16);
+
+    R = Math.min(255, Math.max(0, R + Math.round((percent / 100) * 255)));
+    G = Math.min(255, Math.max(0, G + Math.round((percent / 100) * 255)));
+    B = Math.min(255, Math.max(0, B + Math.round((percent / 100) * 255)));
+
+    const r = R.toString(16).padStart(2, '0');
+    const g = G.toString(16).padStart(2, '0');
+    const b = B.toString(16).padStart(2, '0');
+    return `#${r}${g}${b}`;
 }
 
 function updateThemeSelector(theme) {

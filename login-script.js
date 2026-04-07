@@ -1,3 +1,6 @@
+// API Configuration
+const API_BASE_URL = 'http://localhost:5000/api';
+
 // Initialize authentication
 document.addEventListener('DOMContentLoaded', function() {
     // Check if user is already logged in
@@ -53,7 +56,131 @@ function handleLogin(event) {
         return;
     }
     
-    // Check if user exists in localStorage
+    // Call API
+    fetch(`${API_BASE_URL}/auth/login`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: email,
+            password: password,
+            rememberMe: rememberMe
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Store session
+            const sessionData = {
+                email: data.user.email,
+                name: data.user.name,
+                loginTime: data.user.loginTime,
+                rememberMe: data.user.rememberMe
+            };
+            
+            localStorage.setItem('resumeMakerSession', JSON.stringify(sessionData));
+            
+            if (rememberMe) {
+                localStorage.setItem('resumeMakerRememberMe', JSON.stringify({
+                    email: email,
+                    name: data.user.name
+                }));
+            }
+            
+            showAlert('Login successful! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        } else {
+            showAlert(data.message || 'Login failed', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Login error:', error);
+        showAlert('Connection error. Trying local authentication...', 'warning');
+        // Fallback to localStorage
+        fallbackLogin(email, password, rememberMe);
+    });
+}
+
+function handleSignup(event) {
+    event.preventDefault();
+    
+    const name = document.getElementById('signupName').value.trim();
+    const email = document.getElementById('signupEmail').value.trim();
+    const password = document.getElementById('signupPassword').value;
+    const confirmPassword = document.getElementById('signupConfirmPassword').value;
+    
+    // Validation
+    if (!name || !email || !password || !confirmPassword) {
+        showAlert('Please fill in all fields', 'danger');
+        return;
+    }
+    
+    if (name.length < 2) {
+        showAlert('Name must be at least 2 characters long', 'danger');
+        return;
+    }
+    
+    if (!isValidEmail(email)) {
+        showAlert('Please enter a valid email address', 'danger');
+        return;
+    }
+    
+    if (password.length < 6) {
+        showAlert('Password must be at least 6 characters long', 'danger');
+        return;
+    }
+    
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match', 'danger');
+        return;
+    }
+    
+    // Call API
+    fetch(`${API_BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            name: name,
+            email: email,
+            password: password,
+            confirmPassword: confirmPassword
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Auto login after signup
+            const sessionData = {
+                email: data.user.email,
+                name: data.user.name,
+                loginTime: new Date().toISOString(),
+                rememberMe: false
+            };
+            
+            localStorage.setItem('resumeMakerSession', JSON.stringify(sessionData));
+            
+            showAlert('Account created successfully! Redirecting...', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        } else {
+            showAlert(data.message || 'Signup failed', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Signup error:', error);
+        showAlert('Connection error. Trying local storage...', 'warning');
+        // Fallback to localStorage
+        fallbackSignup(name, email, password);
+    });
+}
+
+function fallbackLogin(email, password, rememberMe) {
     const users = JSON.parse(localStorage.getItem('resumeMakerUsers')) || {};
     
     if (!users[email]) {
@@ -90,47 +217,7 @@ function handleLogin(event) {
     }, 1500);
 }
 
-function handleSignup(event) {
-    event.preventDefault();
-    
-    const name = document.getElementById('signupName').value.trim();
-    const email = document.getElementById('signupEmail').value.trim();
-    const password = document.getElementById('signupPassword').value;
-    const confirmPassword = document.getElementById('signupConfirmPassword').value;
-    const termsAgree = document.getElementById('termsAgree').checked;
-    
-    // Validation
-    if (!name || !email || !password || !confirmPassword) {
-        showAlert('Please fill in all fields', 'danger');
-        return;
-    }
-    
-    if (name.length < 2) {
-        showAlert('Name must be at least 2 characters long', 'danger');
-        return;
-    }
-    
-    if (!isValidEmail(email)) {
-        showAlert('Please enter a valid email address', 'danger');
-        return;
-    }
-    
-    if (password.length < 6) {
-        showAlert('Password must be at least 6 characters long', 'danger');
-        return;
-    }
-    
-    if (password !== confirmPassword) {
-        showAlert('Passwords do not match', 'danger');
-        return;
-    }
-    
-    if (!termsAgree) {
-        showAlert('Please agree to the Terms of Service and Privacy Policy', 'danger');
-        return;
-    }
-    
-    // Check if user already exists
+function fallbackSignup(name, email, password) {
     const users = JSON.parse(localStorage.getItem('resumeMakerUsers')) || {};
     
     if (users[email]) {

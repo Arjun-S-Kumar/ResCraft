@@ -63,17 +63,21 @@
                 <span class="color-swatch" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></span>
                 <span class="color-name">Red</span>
             </button>
+            <div class="color-option custom-color-option" data-theme="custom" title="Custom Theme">
+                <span class="color-swatch custom-swatch" id="customSwatch" style="background: #667eea;"></span>
+                <input type="color" id="customThemeColor" value="#667eea" onchange="updateCustomSwatch(this.value)">
+                <span class="color-name">Custom</span>
+                <button type="button" class="custom-theme-button" onclick="applyCustomTheme()">Apply</button>
+            </div>
         </div>
     </div>
     
-    <button id="cmd" onclick="printpdf()" class="navbtn"><i class="fas fa-download"></i></button>
-    <form>
-    <input type="hidden" id="custinfo" name="custinfo">
-    <button class="navbtn"><i class="fas fa-save"></i></button>
-    </form> 
-    <button class="navbtn" href="" onClick="window.location.reload()"><i class="fas fa-home"></i></button>
+    <button id="cmd" onclick="printpdf()" class="navbtn download-btn"><i class="fas fa-download"></i></button>
+    <button type="button" class="navbtn save-btn" onclick="saveCurrentResume()"><i class="fas fa-save"></i></button>
+    <button type="button" class="navbtn dashboard-btn" onclick="window.location.href='dashboard.html'"><i class="fas fa-tachometer-alt"></i></button>
+    <button class="navbtn home-btn" onclick="window.location.reload()"><i class="fas fa-home"></i></button>
     </div>
-        
+
     <div class="resume" id="resume">
         <section id="print">
              <div class="head">
