@@ -28,6 +28,7 @@ function printpdf() {
     const head = document.createElement('div');
     document.getElementById("education").appendChild(head);
     head.innerHTML = ('<div class="edublock"><span><input type="checkbox" class="input-checkbox"></span><span class="education-head" contenteditable="true">YOUR DEGREE</span><div ><span contenteditable="true">Institute name</span> - <span contenteditable="true">Passing Year</span></div></div>');
+    initializeContenteditablePlaceholders();
     saveresume();
   }
   function remedu(event) {
@@ -55,6 +56,7 @@ function printpdf() {
     const head = document.createElement('div');
     document.getElementById("certification").appendChild(head);
     head.innerHTML = ('<div class="certblock"><span><input type="checkbox" class="input-checkbox"></span><span class="cert-head" contenteditable="true">CERTIFICATION NAME</span><div ><span contenteditable="true">Institute name</span> - <span contenteditable="true">Year</span></div></div>');
+    initializeContenteditablePlaceholders();
     saveresume();
     }
     function remcert(event) {
@@ -83,6 +85,7 @@ function printpdf() {
     const head = document.createElement('div');
     document.getElementById("skills").appendChild(head);
     head.innerHTML = ('<div class="skill"><span><input type="checkbox" class="input-checkbox"></span><span><i class="fas fa-chevron-circle-right"></i></span>   <span contenteditable="true">write your skill here</span></div>');
+    initializeContenteditablePlaceholders();
     saveresume();
   }
   
@@ -111,6 +114,7 @@ function printpdf() {
     const head = document.createElement('div');
     document.getElementById("languages").appendChild(head);
     head.innerHTML = ('<div class="language"><span><input type="checkbox" class="input-checkbox"></span><span contenteditable="true">LANGNAME</span> - <span contenteditable="true">level u know</span></div>');
+    initializeContenteditablePlaceholders();
     saveresume();
   }
   function remLang(event) {
@@ -138,6 +142,7 @@ function printpdf() {
     const head = document.createElement('div');
     document.getElementById("achievement").appendChild(head);
     head.innerHTML = ('<div class="achieve" ><span><input type="checkbox" class="input-checkbox"></span><span contenteditable="true">Write your achievement</span></div>');
+    initializeContenteditablePlaceholders();
     saveresume();
   }
   function remAch(event) {
@@ -165,6 +170,7 @@ function printpdf() {
     const head = document.createElement('div');
     document.getElementById("interest").appendChild(head);
     head.innerHTML = ('<div class="achieve" ><span><input type="checkbox" class="input-checkbox"></span><span contenteditable="true">Write interest</span></div>');
+    initializeContenteditablePlaceholders();
     saveresume();
   }
   function remInt(event) {
@@ -199,6 +205,7 @@ function printpdf() {
         }
   
         maxNewSection = maxNewSection + 1;
+        initializeContenteditablePlaceholders();
     }
     else {
         alert("Atmost 2 NEW SECTION can be added!")
@@ -376,6 +383,7 @@ function printpdf() {
     const resumeSection = document.getElementById('print');
     if (resumeSection) {
       resumeSection.innerHTML = resume.html;
+      initializeContenteditablePlaceholders();
       alert('Saved resume loaded.');
       return;
     }
@@ -396,6 +404,7 @@ function printpdf() {
     const resumeSection = document.getElementById('print');
     if (resumeSection) {
       resumeSection.innerHTML = resume.html;
+      initializeContenteditablePlaceholders();
       alert('Loaded saved resume from dashboard.');
     }
   }
@@ -556,10 +565,39 @@ function updateThemeSelector(theme) {
     });
 }
 
+// Initialize contenteditable placeholder behavior
+function initializeContenteditablePlaceholders() {
+    const editableElements = document.querySelectorAll('[contenteditable="true"]');
+    
+    editableElements.forEach(element => {
+        const placeholder = element.textContent.trim();
+        element.dataset.placeholder = placeholder;
+        
+        element.addEventListener('focus', function() {
+            // If text matches placeholder, clear it
+            if (this.textContent.trim() === this.dataset.placeholder) {
+                this.textContent = '';
+                this.classList.add('editing');
+            }
+        });
+        
+        element.addEventListener('blur', function() {
+            // If text is empty, restore placeholder
+            if (this.textContent.trim() === '') {
+                this.textContent = this.dataset.placeholder;
+                this.classList.remove('editing');
+            }
+        });
+    });
+}
+
 // Toggle color selector visibility
 document.addEventListener('DOMContentLoaded', function() {
     const colorToggle = document.getElementById('colorToggle');
     const colorSelector = document.getElementById('colorSelector');
+    
+    // Initialize contenteditable placeholders
+    initializeContenteditablePlaceholders();
     
     if (colorToggle && colorSelector) {
         colorToggle.addEventListener('click', function(e) {
