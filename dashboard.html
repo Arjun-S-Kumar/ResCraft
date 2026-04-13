@@ -77,6 +77,23 @@
             <h2>Your Saved Resumes</h2>
             <p>Edit or delete any saved resume. Click Edit to open the selected resume in the editor.</p>
         </div>
+
+        <!-- Job Description Matching Section -->
+        <div class="jd-section">
+            <h3>Find Best Resume for Job Description</h3>
+            <p class="jd-instructions">Paste a job description or upload a file to find the best matching resume from your saved resumes. The system looks for matching skills, technologies, and experience.</p>
+            <div class="jd-upload">
+                <textarea id="jdText" placeholder="Paste job description here or upload a file..." rows="4"></textarea>
+                <input type="file" id="jdFile" accept=".txt,.pdf" style="display: none;">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('jdFile').click()">Upload File</button>
+                <button type="button" class="btn btn-primary" onclick="matchResumes()">Find Best Match</button>
+            </div>
+            <div id="matchResults" class="match-results" style="display: none;">
+                <h4>Best Matching Resume:</h4>
+                <div id="bestMatch"></div>
+            </div>
+        </div>
+
         <div id="savedResumesList" class="saved-resumes-list">
             <p class="empty-message">Loading saved resumes...</p>
         </div>

@@ -27,7 +27,7 @@ function printpdf() {
   function addedu() {
     const head = document.createElement('div');
     document.getElementById("education").appendChild(head);
-    head.innerHTML = ('<div class="edublock"><span><input type="checkbox" class="input-checkbox"></span><span class="education-head" contenteditable="true">YOUR DEGREE</span><div ><span contenteditable="true">Institute name</span> - <span contenteditable="true">Passing Year</span></div></div>');
+    head.innerHTML = ('<div class="edublock"><span><input type="checkbox" class="input-checkbox"></span><span class="education-head" contenteditable="true">YOUR DEGREE</span><div ><span contenteditable="true">Institute name</span> - <span contenteditable="true">Passing Year</span></div><div class="marks-section"><span contenteditable="true">CGPA/Percentage: </span><span contenteditable="true">8.5/85%</span></div></div>');
     initializeContenteditablePlaceholders();
     saveresume();
   }
@@ -81,10 +81,39 @@ function printpdf() {
   }
 
 
+  function addmarks() {
+    const head = document.createElement('div');
+    document.getElementById("marks").appendChild(head);
+    head.innerHTML = ('<div class="marksblock"><span><input type="checkbox" class="input-checkbox"></span><span class="marks-head" contenteditable="true">SEMESTER/YEAR</span><div ><span contenteditable="true">Subject Name</span> - <span contenteditable="true">Grade/Marks</span></div></div>');
+    initializeContenteditablePlaceholders();
+    saveresume();
+  }
+  function remmarks(event) {
+    let val = 0;
+    let empty = true;
+    const allInputCheckboxes = event.target.parentElement.getElementsByClassName("input-checkbox");
+    const array = Array.from(allInputCheckboxes);
+    if (array.length === 0) {
+        alert("No fields are present to be deleted!")
+    }
+    else {
+        console.log(array);
+        array.forEach(element => {
+            if (element.checked === true) {
+                val = 1;
+                element.parentElement.parentElement.remove();
+            }
+        })
+        if (val === 0) alert("Please select the checkboxes to delete the required field!")
+    }
+    saveresume();
+  }
+
+
   function addskill() {
     const head = document.createElement('div');
     document.getElementById("skills").appendChild(head);
-    head.innerHTML = ('<div class="skill"><span><input type="checkbox" class="input-checkbox"></span><span><i class="fas fa-chevron-circle-right"></i></span>   <span contenteditable="true">write your skill here</span></div>');
+    head.innerHTML = ('<div class="skill"><span><input type="checkbox" class="input-checkbox"></span><span><i class="fas fa-chevron-circle-right"></i></span>   <span class="skill-text" contenteditable="true" tabindex="0">write your skill here</span></div>');
     initializeContenteditablePlaceholders();
     saveresume();
   }
@@ -113,7 +142,7 @@ function printpdf() {
   function addLang() {
     const head = document.createElement('div');
     document.getElementById("languages").appendChild(head);
-    head.innerHTML = ('<div class="language"><span><input type="checkbox" class="input-checkbox"></span><span contenteditable="true">LANGNAME</span> - <span contenteditable="true">level u know</span></div>');
+    head.innerHTML = ('<div class="language"><span><input type="checkbox" class="input-checkbox"></span><span contenteditable="true">LANGUAGE</span> - <span contenteditable="true">level u know</span></div>');
     initializeContenteditablePlaceholders();
     saveresume();
   }
@@ -273,9 +302,17 @@ function printpdf() {
     const resumeSection = document.getElementById('print');
     if (!resumeSection) return;
 
+    const titleSelect = document.getElementById('nameTitle');
+    if (titleSelect) {
+        Array.from(titleSelect.options).forEach(option => option.removeAttribute('selected'));
+        titleSelect.options[titleSelect.selectedIndex]?.setAttribute('selected', 'selected');
+    }
+
+    const selectedTitle = titleSelect?.value.trim() || '';
     const titleText = document.querySelector('.head .name')?.textContent.trim() || 'Untitled';
     const subtitleText = document.querySelector('.head .post')?.textContent.trim() || '';
-    const title = subtitleText ? `${titleText} - ${subtitleText}` : titleText;
+    const fullName = selectedTitle ? `${selectedTitle} ${titleText}` : titleText;
+    const title = subtitleText ? `${fullName} - ${subtitleText}` : fullName;
     const html = resumeSection.innerHTML;
     const resumeId = 'resume-' + Date.now();
 
@@ -617,3 +654,116 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// JOB DESCRIPTION MATCHING FUNCTIONS
+document.getElementById('jdFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Upload file to extract text
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch('http://localhost:5000/api/jd/process', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('jdText').value = data.text;
+        } else {
+            alert('Failed to process file: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('File processing error:', error);
+        alert('Failed to process file. Please try again.');
+    });
+});
+
+function matchResumes() {
+    const jdText = document.getElementById('jdText').value.trim();
+    if (!jdText) {
+        alert('Please enter a job description.');
+        return;
+    }
+
+    const email = getCurrentUserEmail();
+    if (!email) {
+        alert('Please login to use this feature.');
+        return;
+    }
+
+    // First check if user has any saved resumes
+    fetch(`http://localhost:5000/api/resumes/get?email=${encodeURIComponent(email)}`)
+    .then(response => response.json())
+    .then(data => {
+        if (!data.success || !data.resumes || data.resumes.length === 0) {
+            alert('No saved resumes found. Please create and save some resumes first before using the matching feature.');
+            return;
+        }
+
+        // Proceed with matching
+        fetch('http://localhost:5000/api/resumes/match', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                email: email,
+                jd_text: jdText
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                displayBestMatch(data.best_match, data.score, data.debug);
+            } else {
+                alert('Failed to match resumes: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Matching error:', error);
+            alert('Failed to match resumes. Please try again.');
+        });
+    })
+    .catch(error => {
+        console.error('Error checking resumes:', error);
+        alert('Failed to check saved resumes. Please try again.');
+    });
+}
+
+function displayBestMatch(resume, score, debug) {
+    const resultsDiv = document.getElementById('matchResults');
+    const bestMatchDiv = document.getElementById('bestMatch');
+
+    if (!resume) {
+        let noMatchMessage = '<p>No suitable match found among your saved resumes.</p>';
+        if (debug && debug.jd_keywords && debug.jd_keywords.length > 0) {
+            noMatchMessage += `<p><small>Keywords extracted from JD: ${debug.jd_keywords.slice(0, 10).join(', ')}${debug.jd_keywords.length > 10 ? '...' : ''}</small></p>`;
+            noMatchMessage += '<p><small>Try creating resumes that include these skills and technologies.</small></p>';
+        }
+        bestMatchDiv.innerHTML = noMatchMessage;
+    } else {
+        let keywordsFound = '';
+        if (debug && debug.match_details) {
+            const matchDetail = debug.match_details.find(m => m.title === resume.title);
+            if (matchDetail && matchDetail.keywords_found.length > 0) {
+                keywordsFound = `<p><small>Matching keywords: ${matchDetail.keywords_found.join(', ')}</small></p>`;
+            }
+        }
+        
+        bestMatchDiv.innerHTML = `
+            <div class="match-info">
+                <strong>${resume.title}</strong>
+                <p>Match Score: ${score}</p>
+                <p>Saved on: ${new Date(resume.timestamp).toLocaleString()}</p>
+                ${keywordsFound}
+                <button type="button" class="btn btn-primary btn-sm" onclick="editSavedResume('${resume.id}')">Edit Resume</button>
+            </div>
+        `;
+    }
+
+    resultsDiv.style.display = 'block';
+}

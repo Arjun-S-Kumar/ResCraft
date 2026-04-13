@@ -10,6 +10,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.8.0/html2pdf.bundle.min.js"></script>
     <script src="login-script.js"></script>
     <script src="script.js"></script>
+    
     <link rel="icon" href="Logo/SRA_Logo.ico">
     <script>
         // Check authentication on page load
@@ -82,7 +83,12 @@
         <section id="print">
              <div class="head">
                 <div class="main">
-                    <span class="name" contenteditable="true">YOUR</span>&nbsp<span contenteditable="true">NAME</span>
+                    <div class="name-row">
+                        
+                        <div class="name-text">
+                            <span class="name" contenteditable="true">YOUR</span>&nbsp;<span class="name last-name" contenteditable="true">NAME</span>
+                        </div>
+                    </div>
                     <div class="post" contenteditable="true">YOUR JOB PROFILE</div>
                 </div>
                 <div class="contacts">
@@ -97,12 +103,13 @@
             <div class="mainbody">
                 <div class="leftside">
                 <span class="title">MY SKILLS</span><br><br><div>
+                    
                 <div class="skill"><span><input type="checkbox" class="input-checkbox"></span><span><i class="fas fa-chevron-circle-right"></i></span>&nbsp;<span contenteditable="true">write your skill here</span></div>
                 <div id="skills"></div>
                 <button id="skilladd" type="button" class="btn btn-success" onclick="addskill()"><i class="fas fa-plus-circle"></i> Skill</button>&nbsp
                 <button id="skillrem" type="button" class="btn btn-danger" onclick="remskill(event)"><i class="fas fa-minus-circle"></i> Skill</button></div>
                 <br><span class="title">LANGUAGES</span><br><br><div>
-                <div class="language"><span><input type="checkbox" class="input-checkbox"></span><span contenteditable="true">LANGNAME</span>&nbsp-&nbsp<span contenteditable="true">level u know</span></div>
+                <div class="language"><span><input type="checkbox" class="input-checkbox"></span><span contenteditable="true">LANGUAGE                                                                                                                                                                                                                                                                                                                          </span>&nbsp-&nbsp<span contenteditable="true">level u know</span></div>
                 <div id="languages"></div>
                 <button id="langadd" type="button" class="btn btn-success" onclick="addLang()"><i class="fas fa-plus-circle"></i> Language</button>
                 &nbsp
@@ -129,6 +136,9 @@
                         <span><input type="checkbox" class="input-checkbox"></span>
                         <span class="education-head" contenteditable="true">YOUR DEGREE</span>
                         <div ><span contenteditable="true">Institute name</span> - <span contenteditable="true">Passing Year</span></div>
+                        <div class="marks-section">
+                            <span contenteditable="true">CGPA/Percentage: </span><span contenteditable="true">8.5/85%</span>
+                        </div>
                     </div>
                 </div>
                     
@@ -150,6 +160,20 @@
                     <button id="certadd" type="button" class="btn btn-success" onclick="addcert()"><i class="fas fa-plus-circle"></i> Certification</button>
                     &nbsp
                     <button id="certrem" type="button" class="btn btn-danger" onclick="remcert(event)"><i class="fas fa-minus-circle"></i> Certification</button></div>
+                    <br>
+
+                <span class="title">ACADEMIC MARKS</span><br><br><div>
+                    <div id="marks">
+                        <div class="marksblock">
+                            <span><input type="checkbox" class="input-checkbox"></span>
+                            <span class="marks-head" contenteditable="true">SEMESTER/YEAR</span>
+                            <div><span contenteditable="true">Subject Name</span> - <span contenteditable="true">Grade/Marks</span></div>
+                        </div>
+                    </div>
+                        
+                    <button id="marksadd" type="button" class="btn btn-success" onclick="addmarks()"><i class="fas fa-plus-circle"></i> Marks</button>
+                    &nbsp
+                    <button id="marksrem" type="button" class="btn btn-danger" onclick="remmarks(event)"><i class="fas fa-minus-circle"></i> Marks</button></div>
                     <br>
 
                 <div class="new-section-div"><div><span><input type="checkbox" class="input-checkbox"></span><span class="title" contenteditable="true">NEW SECTION</span><br><br>
