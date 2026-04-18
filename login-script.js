@@ -180,6 +180,188 @@ function handleSignup(event) {
     });
 }
 
+function handleForgotPassword(event) {
+    event.preventDefault();
+
+    const email = document.getElementById('forgotEmail').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmNewPassword').value;
+
+    if (!email || !password || !confirmPassword) {
+        showAlert('Please fill in all fields', 'danger');
+        return;
+    }
+
+    if (!isValidEmail(email)) {
+        showAlert('Please enter a valid email address', 'danger');
+        return;
+    }
+
+    if (password.length < 6) {
+        showAlert('Password must be at least 6 characters long', 'danger');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match', 'danger');
+        return;
+    }
+
+    fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email,
+            password,
+            confirmPassword
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Password reset successful! Redirecting to login...', 'success');
+            setTimeout(() => {
+                window.location.href = 'login.html';
+            }, 1400);
+        } else {
+            showAlert(data.message || 'Reset failed', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Forgot password error:', error);
+        showAlert('Connection error. Please try again.', 'warning');
+    });
+}
+
+function handleOtpReset(event) {
+    event.preventDefault();
+
+    const emailField = document.getElementById('resetEmail');
+    const email = emailField ? emailField.value.trim() : (sessionStorage.getItem('passwordResetEmail') || '');
+    const otp = document.getElementById('otpCode').value.trim();
+    const password = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmNewPassword').value;
+
+    if (!email || !otp || !password || !confirmPassword) {
+        showAlert('Please fill in all fields', 'danger');
+        return;
+    }
+
+    if (!isValidEmail(email)) {
+        showAlert('Please enter a valid email address', 'danger');
+        return;
+    }
+
+    if (password.length < 6) {
+        showAlert('Password must be at least 6 characters long', 'danger');
+        return;
+    }
+
+    if (password !== confirmPassword) {
+        showAlert('Passwords do not match', 'danger');
+        return;
+    }
+
+    fetch(`${API_BASE_URL}/auth/reset-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email,
+            otp,
+            password,
+            confirmPassword
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Password reset successful! Redirecting to login...', 'success');
+            setTimeout(() => {
+                sessionStorage.removeItem('passwordResetEmail');
+                window.location.href = 'login.html';
+            }, 1400);
+        } else {
+            showAlert(data.message || 'Reset failed', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Reset password error:', error);
+        showAlert('Connection error. Please try again.', 'warning');
+    });
+}
+
+function handleChangePassword(event) {
+    event.preventDefault();
+
+    const currentPassword = document.getElementById('currentPassword').value;
+    const newPassword = document.getElementById('newPassword').value;
+    const confirmPassword = document.getElementById('confirmNewPassword').value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        showAlert('Please fill in all fields', 'danger');
+        return;
+    }
+
+    if (newPassword.length < 6) {
+        showAlert('New password must be at least 6 characters long', 'danger');
+        return;
+    }
+
+    if (newPassword !== confirmPassword) {
+        showAlert('New passwords do not match', 'danger');
+        return;
+    }
+
+    const session = JSON.parse(localStorage.getItem('resumeMakerSession'));
+    if (!session) {
+        showAlert('Session expired. Please login again.', 'danger');
+        window.location.href = 'login.html';
+        return;
+    }
+
+    fetch(`${API_BASE_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            email: session.email,
+            currentPassword: currentPassword,
+            newPassword: newPassword,
+            confirmPassword: confirmPassword
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showAlert('Password changed successfully!', 'success');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1400);
+        } else {
+            showAlert(data.message || 'Password change failed', 'danger');
+        }
+    })
+    .catch(error => {
+        console.error('Change password error:', error);
+        showAlert('Connection error. Please try again.', 'warning');
+    });
+}
+
+function populateResetEmail() {
+    const emailField = document.getElementById('resetEmail');
+    if (!emailField) return;
+
+    const savedEmail = sessionStorage.getItem('passwordResetEmail');
+    if (savedEmail) {
+        emailField.value = savedEmail;
+    }
+}
+
 function fallbackLogin(email, password, rememberMe) {
     const users = JSON.parse(localStorage.getItem('resumeMakerUsers')) || {};
     
@@ -286,6 +468,10 @@ function logout() {
     window.location.href = 'login.html';
 }
 
+function changePassword() {
+    window.location.href = 'change-password.html';
+}
+
 function getCurrentUser() {
     const session = JSON.parse(localStorage.getItem('resumeMakerSession'));
     return session ? session.name : null;
@@ -301,7 +487,17 @@ window.addEventListener('load', function() {
     const rememberMeData = localStorage.getItem('resumeMakerRememberMe');
     if (rememberMeData) {
         const data = JSON.parse(rememberMeData);
-        document.getElementById('loginEmail').value = data.email;
-        document.getElementById('rememberMe').checked = true;
+        const loginEmail = document.getElementById('loginEmail');
+        const rememberMeCheckbox = document.getElementById('rememberMe');
+
+        if (loginEmail) {
+            loginEmail.value = data.email;
+        }
+
+        if (rememberMeCheckbox) {
+            rememberMeCheckbox.checked = true;
+        }
     }
+
+    populateResetEmail();
 });

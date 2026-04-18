@@ -40,6 +40,17 @@ The server will start on `http://localhost:5000`
 
 The SQLite database file (`resumemaker.db`) will be created automatically on first run.
 
+### Optional email setup
+If you want OTP emails to be sent from the server, set these environment variables before starting the app:
+
+- `SMTP_HOST`
+- `SMTP_PORT` (default `587`)
+- `SMTP_USER`
+- `SMTP_PASS`
+- `EMAIL_FROM` (optional, defaults to SMTP_USER)
+
+If SMTP is not configured, OTP codes are still generated and printed to the backend console for local testing.
+
 ## API Endpoints
 
 ### Authentication
@@ -52,6 +63,12 @@ The SQLite database file (`resumemaker.db`) will be created automatically on fir
   
 - **POST /api/auth/verify** - Check if email exists
   - Body: `{email}`
+
+- **POST /api/auth/forgot-password** - Send OTP to registered email
+  - Body: `{email}`
+
+- **POST /api/auth/reset-password** - Reset password using OTP
+  - Body: `{email, otp, password, confirmPassword}`
 
 ### Resumes
 
