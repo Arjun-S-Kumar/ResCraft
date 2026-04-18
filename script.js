@@ -415,18 +415,65 @@ function printpdf() {
 
   function editSavedResume(id) {
     const savedResumes = getSavedResumes();
-    const resume = savedResumes.find(item => item.id === id);
-    if (!resume) return;
-    const resumeSection = document.getElementById('print');
-    if (resumeSection) {
-      resumeSection.innerHTML = resume.html;
-      initializeContenteditablePlaceholders();
-      alert('Saved resume loaded.');
+    const resume = savedResumes.find(item => item.id == id);
+    if (resume) {
+      const resumeSection = document.getElementById('print');
+      if (resumeSection) {
+        resumeSection.innerHTML = resume.html;
+        initializeContenteditablePlaceholders();
+        alert('Saved resume loaded.');
+        return;
+      }
+
+      localStorage.setItem('resumeMakerLoadResume', id);
+      window.location.href = 'index.html';
       return;
     }
 
-    localStorage.setItem('resumeMakerLoadResume', id);
-    window.location.href = 'index.html';
+    // If not found locally, try to fetch from backend
+    const email = getCurrentUserEmail();
+    if (!email) {
+      alert('Please login to edit this resume.');
+      return;
+    }
+
+    fetch(`http://localhost:5000/api/resumes/get?email=${encodeURIComponent(email)}`)
+    .then(response => response.json())
+    .then(data => {
+      if (data.success && data.resumes) {
+        const backendResume = data.resumes.find(item => item.id == id);
+        if (backendResume) {
+          const resumeSection = document.getElementById('print');
+          if (resumeSection) {
+            resumeSection.innerHTML = backendResume.html;
+            initializeContenteditablePlaceholders();
+            alert('Saved resume loaded.');
+            return;
+          }
+
+          // Store in localStorage for loading in index.html
+          const localResumes = getSavedResumes();
+          localResumes.push({
+            id: backendResume.id,
+            title: backendResume.title,
+            html: backendResume.html,
+            timestamp: backendResume.timestamp
+          });
+          localStorage.setItem('resumeMakerResumes', JSON.stringify(localResumes));
+
+          localStorage.setItem('resumeMakerLoadResume', id);
+          window.location.href = 'index.html';
+        } else {
+          alert('Resume not found.');
+        }
+      } else {
+        alert('Failed to load resume.');
+      }
+    })
+    .catch(error => {
+      console.error('Error loading resume:', error);
+      alert('Failed to load resume. Please try again.');
+    });
   }
 
   function loadPendingSavedResume() {
@@ -434,7 +481,7 @@ function printpdf() {
     if (!pendingId) return;
 
     const savedResumes = getSavedResumes();
-    const resume = savedResumes.find(item => item.id === pendingId);
+    const resume = savedResumes.find(item => item.id == pendingId);
     localStorage.removeItem('resumeMakerLoadResume');
     if (!resume) return;
 
