@@ -1,0 +1,103 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Start Backend",
+            "type": "shell",
+            "command": "cd",
+            "args": [
+                "${workspaceFolder}/backend"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Start Frontend",
+            "type": "shell",
+            "command": "cd",
+            "args": [
+                "${workspaceFolder}"
+            ],
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "isBackground": true,
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Backend Server",
+            "type": "shell",
+            "command": "call",
+            "args": [
+                "venv\\Scripts\\activate.bat",
+                "&&",
+                "python",
+                "app.py"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/backend"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "isBackground": true,
+            "dependsOn": "Start Backend",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run Frontend Server",
+            "type": "shell",
+            "command": "python",
+            "args": [
+                "-m",
+                "http.server",
+                "80"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            },
+            "isBackground": true,
+            "dependsOn": "Start Frontend",
+            "problemMatcher": []
+        },
+        {
+            "label": "Start Project",
+            "dependsOn": [
+                "Run Backend Server",
+                "Run Frontend Server"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared"
+            }
+        }
+    ]
+}

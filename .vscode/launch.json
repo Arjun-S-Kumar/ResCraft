@@ -1,14 +1,20 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Run ResCraft Project",
             "type": "chrome",
             "request": "launch",
-            "name": "Open index.html",
-            "file": "c:\\Users\\arjun\\OneDrive\\Desktop\\project\\Resume-Maker\\index.html"
+            "preLaunchTask": "Start Project",
+            "url": "http://localhost/login.html",
+            "webRoot": "${workspaceFolder}",
+            "userDataDir": "${workspaceFolder}/.vscode/chrome-profile"
+        },
+        {
+            "type": "chrome",
+            "request": "launch",
+            "name": "Open Login Page",
+            "file": "${workspaceFolder}/login.html"
         }
     ]
 }

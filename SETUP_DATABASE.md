@@ -63,7 +63,7 @@ The SQLite database will be created in the `backend` directory:
 ## How It Works
 
 1. **Frontend** (HTML/CSS/JavaScript) runs on `http://localhost:8080` (or XAMPP port)
-2. **Backend** (Python Flask) runs on `http://localhost:5000`
+2. **Backend** (Python Flask) runs on `http://localhost:5500`
 3. **Frontend makes API calls** to the backend for:
    - User registration
    - User login

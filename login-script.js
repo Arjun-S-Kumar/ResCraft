@@ -1,5 +1,5 @@
 // API Configuration
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'http://localhost:5500/api';
 
 // Initialize authentication
 document.addEventListener('DOMContentLoaded', function() {
@@ -25,10 +25,12 @@ function toggleForms(event) {
     closeAlert();
 }
 
-function togglePassword(fieldId) {
+function togglePassword(fieldId, event) {
     const field = document.getElementById(fieldId);
-    const icon = event.target.closest('.toggle-password');
+    const icon = event ? event.target.closest('.toggle-password') : document.querySelector(`#${fieldId}`).closest('.toggle-password');
     
+    if (!field || !icon) return;
+
     if (field.type === 'password') {
         field.type = 'text';
         icon.innerHTML = '<i class="fas fa-eye-slash"></i>';
@@ -164,9 +166,9 @@ function handleSignup(event) {
             
             localStorage.setItem('resumeMakerSession', JSON.stringify(sessionData));
             
-            showAlert('Account created successfully! Redirecting...', 'success');
+            showAlert('Account created successfully! Redirecting to login...', 'success');
             setTimeout(() => {
-                window.location.href = 'index.html';
+                window.location.href = 'login.html';
             }, 1500);
         } else {
             showAlert(data.message || 'Signup failed', 'danger');
@@ -180,15 +182,13 @@ function handleSignup(event) {
     });
 }
 
-function handleForgotPassword(event) {
+function handleSendOtp(event) {
     event.preventDefault();
 
     const email = document.getElementById('forgotEmail').value.trim();
-    const password = document.getElementById('newPassword').value;
-    const confirmPassword = document.getElementById('confirmNewPassword').value;
 
-    if (!email || !password || !confirmPassword) {
-        showAlert('Please fill in all fields', 'danger');
+    if (!email) {
+        showAlert('Please enter your email address', 'danger');
         return;
     }
 
@@ -197,40 +197,36 @@ function handleForgotPassword(event) {
         return;
     }
 
-    if (password.length < 6) {
-        showAlert('Password must be at least 6 characters long', 'danger');
-        return;
-    }
-
-    if (password !== confirmPassword) {
-        showAlert('Passwords do not match', 'danger');
-        return;
-    }
-
-    fetch(`${API_BASE_URL}/auth/reset-password`, {
+    fetch(`${API_BASE_URL}/auth/forgot-password`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            email,
-            password,
-            confirmPassword
+            email
         })
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            showAlert('Password reset successful! Redirecting to login...', 'success');
+            sessionStorage.setItem('passwordResetEmail', email);
+
+            if (data.otp) {
+                sessionStorage.setItem('passwordResetOtp', data.otp);
+                showAlert(`Demo code: ${data.otp}. Redirecting to OTP verification...`, 'info');
+            } else {
+                showAlert('Verification code sent to your email! Redirecting...', 'success');
+            }
+
             setTimeout(() => {
-                window.location.href = 'login.html';
-            }, 1400);
+                window.location.href = 'otp-verify.html';
+            }, 1800);
         } else {
-            showAlert(data.message || 'Reset failed', 'danger');
+            showAlert(data.message || 'Failed to send verification code', 'danger');
         }
     })
     .catch(error => {
-        console.error('Forgot password error:', error);
+        console.error('Send OTP error:', error);
         showAlert('Connection error. Please try again.', 'warning');
     });
 }
@@ -282,6 +278,7 @@ function handleOtpReset(event) {
             showAlert('Password reset successful! Redirecting to login...', 'success');
             setTimeout(() => {
                 sessionStorage.removeItem('passwordResetEmail');
+                sessionStorage.removeItem('passwordResetOtp');
                 window.location.href = 'login.html';
             }, 1400);
         } else {
@@ -359,6 +356,17 @@ function populateResetEmail() {
     const savedEmail = sessionStorage.getItem('passwordResetEmail');
     if (savedEmail) {
         emailField.value = savedEmail;
+    }
+}
+
+function populateDemoOtp() {
+    const otpField = document.getElementById('otpCode');
+    if (!otpField) return;
+
+    const savedOtp = sessionStorage.getItem('passwordResetOtp');
+    if (savedOtp) {
+        otpField.value = savedOtp;
+        showAlert(`Demo verification code auto-filled: ${savedOtp}`, 'info');
     }
 }
 
@@ -500,4 +508,5 @@ window.addEventListener('load', function() {
     }
 
     populateResetEmail();
+    populateDemoOtp();
 });

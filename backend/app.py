@@ -319,8 +319,8 @@ def reset_password():
         password = data.get('password', '')
         confirm_password = data.get('confirmPassword', '')
 
-        if not email or not password or not confirm_password:
-            return jsonify({'success': False, 'message': 'Email and passwords are required'}), 400
+        if not email or not otp or not password or not confirm_password:
+            return jsonify({'success': False, 'message': 'Email, OTP, and passwords are required'}), 400
 
         if password != confirm_password:
             return jsonify({'success': False, 'message': 'Passwords do not match'}), 400
@@ -338,13 +338,12 @@ def reset_password():
             conn.close()
             return jsonify({'success': False, 'message': 'Email is not registered'}), 404
 
-        # If OTP is provided, verify it
-        if otp:
-            if not verify_reset_otp(email, otp):
-                conn.close()
-                return jsonify({'success': False, 'message': 'Invalid or expired verification code'}), 401
-            # Mark OTP as used
-            cursor.execute('UPDATE password_resets SET used = 1 WHERE email = ? AND otp = ?', (email, otp))
+        # Verify OTP
+        if not verify_reset_otp(email, otp):
+            conn.close()
+            return jsonify({'success': False, 'message': 'Invalid or expired verification code'}), 401
+        # Mark OTP as used
+        cursor.execute('UPDATE password_resets SET used = 1 WHERE email = ? AND otp = ?', (email, otp))
 
         # Update password
         password_hash = hash_password(password)
@@ -746,4 +745,4 @@ if __name__ == '__main__':
     print("Initializing database...")
     init_db()
     print("Starting Flask server...")
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5500)
