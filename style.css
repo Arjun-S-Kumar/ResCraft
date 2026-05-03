@@ -13,7 +13,8 @@ body {
     background-size: 400% 400%;
     animation: gradientShift 15s ease infinite;
     display: grid;
-    place-items: center;
+    place-items: start center;
+    overflow-y: auto;
     font-weight: 450;
     opacity: 1;
     min-height: 100vh;
@@ -42,7 +43,6 @@ body {
     width: 800px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     border-radius: 12px;
-    overflow: hidden;
     animation: slideInUp 0.6s ease-out;
     background: white;
 }
@@ -61,8 +61,8 @@ body {
 {
     background-color: #fff;
     padding: 30px 50px;
-    height: 1120px;
-
+    min-height: 1120px;
+    height: auto;
 }
 
 .head {
@@ -154,6 +154,7 @@ body {
 .mainbody {
     display: grid;
     grid-template-columns: 10fr 1fr 17fr;
+    align-items: start;
     height: auto;
     gap: 5px;
 }
